@@ -8,18 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-white">
-  <!-- Hidden STATIC form so Netlify detects it at deploy time -->
-  <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
-    <input type="hidden" name="form-name" value="contact" />
-    <input name="name" />
-    <input name="email" />
-    <input name="company" />
-    <input name="product" />
-    <input name="incoterms" />
-    <textarea name="message"></textarea>
-    <input name="bot-field" />
-  </form>
-
   <div id="root"></div>
 
   <!-- React + ReactDOM (CDN) -->
@@ -27,125 +15,10 @@
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <!-- Babel to compile JSX in the browser -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Supabase JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- App Code -->
   <script type="text/babel">
-    // Utility to URL-encode form data for Netlify
-    function encode(data) {
-      return Object.keys(data)
-        .map((key) => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
-        .join("&");
-    }
-
-    function ContactForm() {
-      const [status, setStatus] = React.useState("idle"); // idle | ok | error
-      const [error, setError] = React.useState("");
-
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        const form = e.target;
-        const data = Object.fromEntries(new FormData(form).entries());
-
-        // Honeypot check (spam bots)
-        if (data["bot-field"]) return;
-
-        fetch("/", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: encode({ "form-name": "contact", ...data }),
-        })
-          .then((res) => {
-            if (!res.ok && res.status !== 200) throw new Error("Network error");
-            setStatus("ok");
-            form.reset();
-          })
-          .catch((err) => {
-            setError(err.message || "Unknown error");
-            setStatus("error");
-          });
-      };
-
-      if (status === "ok") {
-        return (
-          <div className="rounded-2xl border p-4 bg-emerald-50 text-emerald-900">
-            Thanks — we’ve received your inquiry! We’ll reply shortly.
-          </div>
-        );
-      }
-
-      if (status === "error") {
-        return (
-          <div className="rounded-2xl border p-4 bg-red-50 text-red-900">
-            Sorry, something went wrong. Please try again. <span className="block text-xs mt-1">Details: {error}</span>
-          </div>
-        );
-      }
-
-      return (
-        <form
-          name="contact"
-          method="POST"
-          data-netlify="true"
-          netlify-honeypot="bot-field"
-          onSubmit={handleSubmit}
-          className="rounded-3xl border bg-white shadow-sm p-6 space-y-4"
-        >
-          {/* Netlify required hidden input */}
-          <input type="hidden" name="form-name" value="contact" />
-          {/* Honeypot field */}
-          <p className="hidden">
-            <label>Don’t fill this out if you’re human: <input name="bot-field" /></label>
-          </p>
-
-          <div>
-            <label className="block text-sm font-medium">Full Name</label>
-            <input type="text" name="name" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Your name" />
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium">Email</label>
-              <input type="email" name="email" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="you@company.com" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Company</label>
-              <input type="text" name="company" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Company name" />
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium">Product</label>
-              <select name="product" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
-                <option>Raw Cashew Nuts (RCN)</option>
-                <option>Sesame Seed</option>
-                <option>Ginger (Split/Dry)</option>
-                <option>Other (specify below)</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Incoterms</label>
-              <select name="incoterms" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
-                <option>FOB</option>
-                <option>CIF</option>
-                <option>CFR</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Message / Specs</label>
-            <textarea name="message" rows="4" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Destination port, quantity (MT), quality specs, timeline…"></textarea>
-          </div>
-
-          <button type="submit" className="w-full rounded-2xl bg-emerald-600 px-5 py-3 text-white font-medium shadow hover:bg-emerald-700">
-            Send Inquiry
-          </button>
-          <p className="text-xs text-gray-500">*Submissions go to your Netlify Forms dashboard. Set email notifications there (add <code>admin@eakinstom.com</code> as recipient).</p>
-        </form>
-      );
-    }
-
     function App() {
       return (
         <div className="min-h-screen bg-white text-gray-800">
@@ -176,7 +49,8 @@
             <div className="mx-auto max-w-7xl px-4 py-20 grid md:grid-cols-2 gap-8 items-center">
               <div>
                 <h1 className="text-3xl md:text-5xl font-extrabold leading-tight text-gray-900">
-                  Premium Nigerian <span className="text-emerald-700">Cashew</span>, <span className="text-amber-700">Sesame</span> &amp; More — Exported with Care.
+                  Premium Nigerian <span className="text-emerald-700">Cashew</span>, <span className="text-amber-700">Sesame</span> &amp; More —
+                  Exported with Care.
                 </h1>
                 <p className="mt-4 text-gray-600 max-w-prose">
                   Eakinstom International Limited is an agricultural exports company focused on sourcing, processing, and shipping
@@ -254,7 +128,6 @@
               </div>
 
               <div className="mt-8 grid md:grid-cols-3 gap-6">
-                {/* Cashew */}
                 <article className="rounded-3xl bg-white border shadow-sm p-6">
                   <h3 className="font-semibold text-lg">Raw Cashew Nuts (RCN)</h3>
                   <p className="mt-2 text-sm text-gray-600">High out-turn Nigerian RCN, uniform grading, moisture-controlled.</p>
@@ -265,7 +138,6 @@
                   </ul>
                 </article>
 
-                {/* Sesame */}
                 <article className="rounded-3xl bg-white border shadow-sm p-6">
                   <h3 className="font-semibold text-lg">Sesame Seed</h3>
                   <p className="mt-2 text-sm text-gray-600">White &amp; mixed varieties; cleaned for export with lab reports.</p>
@@ -276,7 +148,6 @@
                   </ul>
                 </article>
 
-                {/* Add-ons */}
                 <article className="rounded-3xl bg-white border shadow-sm p-6">
                   <h3 className="font-semibold text-lg">Other Lines (on request)</h3>
                   <p className="mt-2 text-sm text-gray-600">Ginger (split/dry), shea nuts, hibiscus flower, and BBQ charcoal.</p>
@@ -345,23 +216,66 @@
             </div>
           </section>
 
-          {/* Contact */}
+          {/* Contact (wired to Supabase) */}
           <section id="contact" className="mx-auto max-w-7xl px-4 py-16">
             <div className="grid md:grid-cols-2 gap-10 items-start">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold">Request a Quote / Contact</h2>
-                <p className="mt-4 text-gray-600">
-                  Tell us your destination port, target specs, and preferred incoterms. We'll reply with availability and pricing.
-                </p>
+                <p className="mt-4 text-gray-600">Tell us your destination port, target specs, and preferred incoterms. We'll reply with availability and pricing.</p>
                 <div className="mt-6 space-y-2 text-sm text-gray-700">
-                  <p><span className="font-medium">Email:</span> info@eakinstom.com</p>
-                  <p><span className="font-medium">Phone/WhatsApp:</span> +234-000-000-0000</p>
+                  <p><span className="font-medium">Email:</span> bode.moyosade@eakinstom.com</p>
+                  <p><span className="font-medium">Phone/WhatsApp:</span> +234-803-774-5054</p>
                   <p><span className="font-medium">Office:</span> Lagos, Nigeria</p>
                 </div>
               </div>
 
-              {/* Netlify AJAX-powered form */}
-              <ContactForm />
+              <form id="inquiry-form" className="rounded-3xl border bg-white shadow-sm p-6 space-y-4">
+                <div className="hidden">
+                  {/* Honeypot against bots */}
+                  <label>Leave this empty</label>
+                  <input type="text" id="website" name="website" className="mt-1 w-full rounded-xl border px-3 py-2" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium">Full Name</label>
+                  <input id="full_name" type="text" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Your name" />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium">Email</label>
+                    <input id="email" type="email" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="you@company.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Company</label>
+                    <input id="company" type="text" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Company name" />
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium">Product</label>
+                    <select id="product" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                      <option>Raw Cashew Nuts (RCN)</option>
+                      <option>Sesame Seed</option>
+                      <option>Ginger (Split/Dry)</option>
+                      <option>Other (specify below)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Incoterms</label>
+                    <select id="incoterms" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                      <option>FOB</option>
+                      <option>CIF</option>
+                      <option>CFR</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Message / Specs</label>
+                  <textarea id="message" rows="4" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Destination port, quantity (MT), quality specs, timeline…"></textarea>
+                </div>
+                <button id="submit-btn" type="submit" className="w-full rounded-2xl bg-emerald-600 px-5 py-3 text-white font-medium shadow hover:bg-emerald-700">Send Inquiry</button>
+                <p id="status" className="text-xs text-gray-500"></p>
+              </form>
             </div>
           </section>
 
@@ -382,6 +296,58 @@
 
     const root = ReactDOM.createRoot(document.getElementById("root"));
     root.render(<App />);
+  </script>
+
+  <!-- Supabase handler -->
+  <script>
+    const SUPABASE_URL = "https://rdtfqruyckzgwrzktkaa.supabase.co";  
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkdGZxcnV5Y2t6Z3dyemt0a2FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NTc1MTcsImV4cCI6MjA3MjAzMzUxN30.EM15Q8XvGrfvSkmHe2C3cibv20PYC4dNhJPpK5oJ2LY";
+
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const form = document.addEventListener("DOMContentLoaded", () => {
+      const formEl = document.getElementById("inquiry-form");
+      const statusEl = document.getElementById("status");
+      const submitBtn = document.getElementById("submit-btn");
+
+      formEl.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // bot trap
+        if (document.getElementById("website").value) return;
+
+        submitBtn.disabled = true;
+        statusEl.textContent = "Sending…";
+
+        const payload = {
+          full_name: document.getElementById("full_name").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          company: document.getElementById("company").value.trim(),
+          product: document.getElementById("product").value,
+          incoterms: document.getElementById("incoterms").value,
+          message: document.getElementById("message").value.trim(),
+        };
+
+        if (!payload.full_name || !payload.email || !payload.message) {
+          statusEl.textContent = "Name, email and message are required.";
+          submitBtn.disabled = false;
+          return;
+        }
+
+        const { error } = await client.from("inquiries").insert([payload]);
+
+        if (error) {
+          console.error(error);
+          statusEl.textContent = "Error: " + error.message;
+          submitBtn.disabled = false;
+          return;
+        }
+
+        statusEl.textContent = "Thanks! Your inquiry has been recorded.";
+        submitBtn.disabled = false;
+        document.getElementById("inquiry-form").reset();
+      });
+    });
   </script>
 </body>
 </html>
