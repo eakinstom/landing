@@ -8,6 +8,18 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-white">
+  <!-- Hidden STATIC form so Netlify detects it at deploy time -->
+  <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="contact" />
+    <input name="name" />
+    <input name="email" />
+    <input name="company" />
+    <input name="product" />
+    <input name="incoterms" />
+    <textarea name="message"></textarea>
+    <input name="bot-field" />
+  </form>
+
   <div id="root"></div>
 
   <!-- React + ReactDOM (CDN) -->
@@ -18,6 +30,122 @@
 
   <!-- App Code -->
   <script type="text/babel">
+    // Utility to URL-encode form data for Netlify
+    function encode(data) {
+      return Object.keys(data)
+        .map((key) => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
+        .join("&");
+    }
+
+    function ContactForm() {
+      const [status, setStatus] = React.useState("idle"); // idle | ok | error
+      const [error, setError] = React.useState("");
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const data = Object.fromEntries(new FormData(form).entries());
+
+        // Honeypot check (spam bots)
+        if (data["bot-field"]) return;
+
+        fetch("/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: encode({ "form-name": "contact", ...data }),
+        })
+          .then((res) => {
+            if (!res.ok && res.status !== 200) throw new Error("Network error");
+            setStatus("ok");
+            form.reset();
+          })
+          .catch((err) => {
+            setError(err.message || "Unknown error");
+            setStatus("error");
+          });
+      };
+
+      if (status === "ok") {
+        return (
+          <div className="rounded-2xl border p-4 bg-emerald-50 text-emerald-900">
+            Thanks — we’ve received your inquiry! We’ll reply shortly.
+          </div>
+        );
+      }
+
+      if (status === "error") {
+        return (
+          <div className="rounded-2xl border p-4 bg-red-50 text-red-900">
+            Sorry, something went wrong. Please try again. <span className="block text-xs mt-1">Details: {error}</span>
+          </div>
+        );
+      }
+
+      return (
+        <form
+          name="contact"
+          method="POST"
+          data-netlify="true"
+          netlify-honeypot="bot-field"
+          onSubmit={handleSubmit}
+          className="rounded-3xl border bg-white shadow-sm p-6 space-y-4"
+        >
+          {/* Netlify required hidden input */}
+          <input type="hidden" name="form-name" value="contact" />
+          {/* Honeypot field */}
+          <p className="hidden">
+            <label>Don’t fill this out if you’re human: <input name="bot-field" /></label>
+          </p>
+
+          <div>
+            <label className="block text-sm font-medium">Full Name</label>
+            <input type="text" name="name" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Your name" />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium">Email</label>
+              <input type="email" name="email" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="you@company.com" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Company</label>
+              <input type="text" name="company" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Company name" />
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium">Product</label>
+              <select name="product" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                <option>Raw Cashew Nuts (RCN)</option>
+                <option>Sesame Seed</option>
+                <option>Ginger (Split/Dry)</option>
+                <option>Other (specify below)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Incoterms</label>
+              <select name="incoterms" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                <option>FOB</option>
+                <option>CIF</option>
+                <option>CFR</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">Message / Specs</label>
+            <textarea name="message" rows="4" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Destination port, quantity (MT), quality specs, timeline…"></textarea>
+          </div>
+
+          <button type="submit" className="w-full rounded-2xl bg-emerald-600 px-5 py-3 text-white font-medium shadow hover:bg-emerald-700">
+            Send Inquiry
+          </button>
+          <p className="text-xs text-gray-500">*Submissions go to your Netlify Forms dashboard. Set email notifications there (add <code>admin@eakinstom.com</code> as recipient).</p>
+        </form>
+      );
+    }
+
     function App() {
       return (
         <div className="min-h-screen bg-white text-gray-800">
@@ -48,8 +176,7 @@
             <div className="mx-auto max-w-7xl px-4 py-20 grid md:grid-cols-2 gap-8 items-center">
               <div>
                 <h1 className="text-3xl md:text-5xl font-extrabold leading-tight text-gray-900">
-                  Premium Nigerian <span className="text-emerald-700">Cashew</span>, <span className="text-amber-700">Sesame</span> &amp; More —
-                  Exported with Care.
+                  Premium Nigerian <span className="text-emerald-700">Cashew</span>, <span className="text-amber-700">Sesame</span> &amp; More — Exported with Care.
                 </h1>
                 <p className="mt-4 text-gray-600 max-w-prose">
                   Eakinstom International Limited is an agricultural exports company focused on sourcing, processing, and shipping
@@ -73,6 +200,7 @@
                   <div className="rounded-2xl bg-lime-100 border flex items-center justify-center text-lime-900 font-semibold">Ginger (DR/Spl.)</div>
                   <div className="rounded-2xl bg-stone-100 border flex items-center justify-center text-stone-900 font-semibold">Charcoal (BBQ)</div>
                 </div>
+                <p className="text-xs text-gray-500 mt-2 text-center">*Illustrative product tiles – replace with photos later.</p>
               </div>
             </div>
           </section>
@@ -222,53 +350,18 @@
             <div className="grid md:grid-cols-2 gap-10 items-start">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold">Request a Quote / Contact</h2>
-                <p className="mt-4 text-gray-600">Tell us your destination port, target specs, and preferred incoterms. We'll reply with availability and pricing.</p>
+                <p className="mt-4 text-gray-600">
+                  Tell us your destination port, target specs, and preferred incoterms. We'll reply with availability and pricing.
+                </p>
                 <div className="mt-6 space-y-2 text-sm text-gray-700">
-                  <p><span className="font-medium">Email:</span> bode.moyosade@eakinstom.com</p>
-                  <p><span className="font-medium">Phone/WhatsApp:</span> +234-7909-368-7985</p>
+                  <p><span className="font-medium">Email:</span> info@eakinstom.com</p>
+                  <p><span className="font-medium">Phone/WhatsApp:</span> +234-000-000-0000</p>
                   <p><span className="font-medium">Office:</span> Lagos, Nigeria</p>
                 </div>
               </div>
-              <form className="rounded-3xl border bg-white shadow-sm p-6 space-y-4" netlify>
-                <div>
-                  <label className="block text-sm font-medium">Full Name</label>
-                  <input type="text" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Your name" />
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium">Email</label>
-                    <input type="email" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="you@company.com" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium">Company</label>
-                    <input type="text" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Company name" />
-                  </div>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium">Product</label>
-                    <select className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
-                      <option>Raw Cashew Nuts (RCN)</option>
-                      <option>Sesame Seed</option>
-                      <option>Ginger (Split/Dry)</option>
-                      <option>Other (specify below)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium">Incoterms</label>
-                    <select className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
-                      <option>FOB</option>
-                      <option>CIF</option>
-                      <option>CFR</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Message / Specs</label>
-                  <textarea rows="4" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Destination port, quantity (MT), quality specs, timeline…"></textarea>
-                </div>
-                <button type="button" className="w-full rounded-2xl bg-emerald-600 px-5 py-3 text-white font-medium shadow hover:bg-emerald-700">Send Inquiry</button>
-              </form>
+
+              {/* Netlify AJAX-powered form */}
+              <ContactForm />
             </div>
           </section>
 
