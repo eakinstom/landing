@@ -57,32 +57,31 @@
           setStatus("Sending…");
           setOk(null);
 
-          // Insert and return the new id (helps debugging)
-          const { data, error } = await supabase
-            .from("inquiries")
-            .insert(payload)
-            .select("id")
-            .single();
+// Insert and return id (optional)
+const { data, error } = await supabase
+  .from("inquiries")
+  .insert(payload)
+  .select("id")
+  .single();
 
-          if (error) {
-            console.error("Supabase insert error:", error);
-            setOk(false);
-            setStatus("Error: " + (error.message || "Insert failed"));
-            return;
-          }
+if (error) {
+  // 23505 = unique_violation (duplicate email)
+  if (error.code === "23505") {
+    setOk(false);
+    setStatus("This email has already submitted an inquiry.");
+  } else {
+    console.error("Supabase insert error:", error);
+    setOk(false);
+    setStatus("Error: " + (error.message || "Insert failed"));
+  }
+  return;
+}
 
-          // Success
-          setOk(true);
-          setStatus("Thanks! Your inquiry has been recorded.");
-          form.reset();
-        } catch (err) {
-          console.error("Unexpected error:", err);
-          setOk(false);
-          setStatus("Unexpected error. Check console for details.");
-        } finally {
-          setLoading(false);
-        }
-      };
+// Success
+setOk(true);
+setStatus("Thanks! Your inquiry has been recorded.");
+form.reset();
+
 
       return (
         <div className="min-h-screen bg-white text-gray-800">
