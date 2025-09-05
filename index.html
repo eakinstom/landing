@@ -19,7 +19,71 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script type="text/babel">
+    // 🔐 Your Supabase project creds
+    const SUPABASE_URL = "https://rdtfqruyckzgwrzktkaa.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkdGZxcnV5Y2t6Z3dyemt0a2FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NTc1MTcsImV4cCI6MjA3MjAzMzUxN30.EM15Q8XvGrfvSkmHe2C3cibv20PYC4dNhJPpK5oJ2LY";
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     function App() {
+      const [status, setStatus] = React.useState("");
+      const [ok, setOk] = React.useState(null);      // true / false / null
+      const [loading, setLoading] = React.useState(false);
+
+      const handleSubmit = async (e) => {
+        e.preventDefault(); // 🚫 no page reload
+        const form = e.target;
+
+        // bot trap (honeypot)
+        if (form.website.value) return;
+
+        const payload = {
+          full_name: form.full_name.value.trim(),
+          email: form.email.value.trim(),
+          company: form.company.value.trim(),
+          product: form.product.value,
+          incoterms: form.incoterms.value,
+          message: form.message.value.trim(),
+        };
+
+        if (!payload.full_name || !payload.email || !payload.message) {
+          setOk(false);
+          setStatus("Name, email and message are required.");
+          return;
+        }
+
+        try {
+          setLoading(true);
+          setStatus("Sending…");
+          setOk(null);
+
+          // Insert and return the new id (helps debugging)
+          const { data, error } = await supabase
+            .from("inquiries")
+            .insert(payload)
+            .select("id")
+            .single();
+
+          if (error) {
+            console.error("Supabase insert error:", error);
+            setOk(false);
+            setStatus("Error: " + (error.message || "Insert failed"));
+            return;
+          }
+
+          // Success
+          setOk(true);
+          setStatus("Thanks! Your inquiry has been recorded.");
+          form.reset();
+        } catch (err) {
+          console.error("Unexpected error:", err);
+          setOk(false);
+          setStatus("Unexpected error. Check console for details.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
       return (
         <div className="min-h-screen bg-white text-gray-800">
           {/* Top Bar */}
@@ -229,31 +293,31 @@
                 </div>
               </div>
 
-              <form id="inquiry-form" className="rounded-3xl border bg-white shadow-sm p-6 space-y-4">
+              <form id="inquiry-form" onSubmit={handleSubmit} className="rounded-3xl border bg-white shadow-sm p-6 space-y-4">
+                {/* Honeypot against bots */}
                 <div className="hidden">
-                  {/* Honeypot against bots */}
                   <label>Leave this empty</label>
                   <input type="text" id="website" name="website" className="mt-1 w-full rounded-xl border px-3 py-2" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium">Full Name</label>
-                  <input id="full_name" type="text" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Your name" />
+                  <input id="full_name" name="full_name" type="text" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Your name" />
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium">Email</label>
-                    <input id="email" type="email" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="you@company.com" />
+                    <input id="email" name="email" type="email" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="you@company.com" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium">Company</label>
-                    <input id="company" type="text" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Company name" />
+                    <input id="company" name="company" type="text" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Company name" />
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium">Product</label>
-                    <select id="product" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                    <select id="product" name="product" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
                       <option>Raw Cashew Nuts (RCN)</option>
                       <option>Sesame Seed</option>
                       <option>Ginger (Split/Dry)</option>
@@ -262,7 +326,7 @@
                   </div>
                   <div>
                     <label className="block text-sm font-medium">Incoterms</label>
-                    <select id="incoterms" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                    <select id="incoterms" name="incoterms" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
                       <option>FOB</option>
                       <option>CIF</option>
                       <option>CFR</option>
@@ -271,10 +335,28 @@
                 </div>
                 <div>
                   <label className="block text-sm font-medium">Message / Specs</label>
-                  <textarea id="message" rows="4" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Destination port, quantity (MT), quality specs, timeline…"></textarea>
+                  <textarea id="message" name="message" rows="4" required className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600" placeholder="Destination port, quantity (MT), quality specs, timeline…"></textarea>
                 </div>
-                <button id="submit-btn" type="submit" className="w-full rounded-2xl bg-emerald-600 px-5 py-3 text-white font-medium shadow hover:bg-emerald-700">Send Inquiry</button>
-                <p id="status" className="text-xs text-gray-500"></p>
+
+                <button
+                  id="submit-btn"
+                  type="submit"
+                  disabled={loading}
+                  className={`w-full rounded-2xl px-5 py-3 text-white font-medium shadow
+                    ${loading ? "bg-emerald-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700"}`}
+                >
+                  {loading ? "Sending…" : "Send Inquiry"}
+                </button>
+
+                {status && (
+                  <p
+                    id="status"
+                    aria-live="polite"
+                    className={`text-sm ${ok === true ? "text-emerald-700" : ok === false ? "text-red-600" : "text-gray-500"}`}
+                  >
+                    {status}
+                  </p>
+                )}
               </form>
             </div>
           </section>
@@ -296,58 +378,6 @@
 
     const root = ReactDOM.createRoot(document.getElementById("root"));
     root.render(<App />);
-  </script>
-
-  <!-- Supabase handler -->
-  <script>
-    const SUPABASE_URL = "https://rdtfqruyckzgwrzktkaa.supabase.co";  
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkdGZxcnV5Y2t6Z3dyemt0a2FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NTc1MTcsImV4cCI6MjA3MjAzMzUxN30.EM15Q8XvGrfvSkmHe2C3cibv20PYC4dNhJPpK5oJ2LY";
-
-    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const form = document.addEventListener("DOMContentLoaded", () => {
-      const formEl = document.getElementById("inquiry-form");
-      const statusEl = document.getElementById("status");
-      const submitBtn = document.getElementById("submit-btn");
-
-      formEl.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        // bot trap
-        if (document.getElementById("website").value) return;
-
-        submitBtn.disabled = true;
-        statusEl.textContent = "Sending…";
-
-        const payload = {
-          full_name: document.getElementById("full_name").value.trim(),
-          email: document.getElementById("email").value.trim(),
-          company: document.getElementById("company").value.trim(),
-          product: document.getElementById("product").value,
-          incoterms: document.getElementById("incoterms").value,
-          message: document.getElementById("message").value.trim(),
-        };
-
-        if (!payload.full_name || !payload.email || !payload.message) {
-          statusEl.textContent = "Name, email and message are required.";
-          submitBtn.disabled = false;
-          return;
-        }
-
-        const { error } = await client.from("inquiries").insert([payload]);
-
-        if (error) {
-          console.error(error);
-          statusEl.textContent = "Error: " + error.message;
-          submitBtn.disabled = false;
-          return;
-        }
-
-        statusEl.textContent = "Thanks! Your inquiry has been recorded.";
-        submitBtn.disabled = false;
-        document.getElementById("inquiry-form").reset();
-      });
-    });
   </script>
 </body>
 </html>
