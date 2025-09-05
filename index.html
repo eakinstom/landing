@@ -4,37 +4,83 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Eakinstom International Ltd.</title>
-  <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-white">
   <div id="root"></div>
 
-  <!-- React + ReactDOM (CDN) -->
+  <!-- React + ReactDOM + Babel -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <!-- Babel to compile JSX in the browser -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Supabase JS (CDN) -->
+  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script type="text/babel">
-    // 🔐 Your Supabase project creds
+    // 🔐 Supabase creds (ok to expose anon because RLS only allows INSERT on this table)
     const SUPABASE_URL = "https://rdtfqruyckzgwrzktkaa.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkdGZxcnV5Y2t6Z3dyemt0a2FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NTc1MTcsImV4cCI6MjA3MjAzMzUxN30.EM15Q8XvGrfvSkmHe2C3cibv20PYC4dNhJPpK5oJ2LY";
-
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Small alert component
+    function Alert({ type = "info", children, onClose }) {
+      const styles = {
+        success: "bg-emerald-50 border-emerald-200 text-emerald-800",
+        error:   "bg-red-50 border-red-200 text-red-800",
+        info:    "bg-gray-50 border-gray-200 text-gray-700",
+      }[type] || "bg-gray-50 border-gray-200 text-gray-700";
+
+      const icon = {
+        success: "✔️",
+        error: "⚠️",
+        info: "ℹ️",
+      }[type] || "ℹ️";
+
+      return (
+        <div role="alert" className={`rounded-xl border px-4 py-3 flex items-start gap-3 ${styles}`}>
+          <div className="text-lg leading-none">{icon}</div>
+          <div className="text-sm">{children}</div>
+          {onClose && (
+            <button onClick={onClose} className="ml-auto text-sm opacity-70 hover:opacity-100">✕</button>
+          )}
+        </div>
+      );
+    }
+
+    // Friendlier messages for common Supabase/Postgres errors
+    function translateSupabaseError(error) {
+      if (!error) return "We couldn’t submit your inquiry right now.";
+      const msg = (error.message || "").toLowerCase();
+      const code = error.code;
+
+      if (code === "23505" || msg.includes("duplicate key value")) {
+        return "This email has already submitted an inquiry. If you need to update details, please use a different email or contact us directly.";
+      }
+      if (msg.includes("row-level security") || code === "42501") {
+        return "Your request was blocked by security rules. Please contact the site admin to enable inserts for this form.";
+      }
+      if (code === "401" || msg.includes("jwt")) {
+        return "Authentication failed. Check the public (anon) key in the page configuration.";
+      }
+      if (code === "42P01" || msg.includes("relation") && msg.includes("does not exist")) {
+        return "Server table not found. Confirm the table name is public.inquiries.";
+      }
+      if (code === "22P02") {
+        return "Invalid data format. Please check your inputs and try again.";
+      }
+      // Default
+      return "We couldn’t submit your inquiry right now. Please try again in a moment.";
+    }
+
     function App() {
-      const [status, setStatus] = React.useState("");
-      const [ok, setOk] = React.useState(null);      // true / false / null
+      const [notice, setNotice] = React.useState(null); // {type:'success'|'error'|'info', text:string}
       const [loading, setLoading] = React.useState(false);
 
       const handleSubmit = async (e) => {
-        e.preventDefault(); // 🚫 no page reload
+        e.preventDefault(); // stay on page
         const form = e.target;
 
-        // bot trap (honeypot)
+        // bot trap
         if (form.website.value) return;
 
         const payload = {
@@ -47,41 +93,37 @@
         };
 
         if (!payload.full_name || !payload.email || !payload.message) {
-          setOk(false);
-          setStatus("Name, email and message are required.");
+          setNotice({ type: "error", text: "Please fill your name, email and message." });
           return;
         }
 
         try {
           setLoading(true);
-          setStatus("Sending…");
-          setOk(null);
+          setNotice(null);
 
-// Insert and return id (optional)
-const { data, error } = await supabase
-  .from("inquiries")
-  .insert(payload)
-  .select("id")
-  .single();
+          // Insert and fetch id (helps debugging)
+          const { data, error } = await supabase
+            .from("inquiries")
+            .insert(payload)
+            .select("id")
+            .single();
 
-if (error) {
-  // 23505 = unique_violation (duplicate email)
-  if (error.code === "23505") {
-    setOk(false);
-    setStatus("This email has already submitted an inquiry.");
-  } else {
-    console.error("Supabase insert error:", error);
-    setOk(false);
-    setStatus("Error: " + (error.message || "Insert failed"));
-  }
-  return;
-}
+          if (error) {
+            console.error("Supabase insert error:", error);
+            setNotice({ type: "error", text: translateSupabaseError(error) });
+            return;
+          }
 
-// Success
-setOk(true);
-setStatus("Thanks! Your inquiry has been recorded.");
-form.reset();
-
+          // ✅ Success: clear form + show pretty success box
+          form.reset();
+          setNotice({ type: "success", text: "Thanks! Your inquiry has been recorded. We’ll get back to you shortly." });
+        } catch (err) {
+          console.error("Unexpected error:", err);
+          setNotice({ type: "error", text: "Unexpected error. Please try again." });
+        } finally {
+          setLoading(false);
+        }
+      };
 
       return (
         <div className="min-h-screen bg-white text-gray-800">
@@ -290,6 +332,15 @@ form.reset();
                   <p><span className="font-medium">Phone/WhatsApp:</span> +234-803-774-5054</p>
                   <p><span className="font-medium">Office:</span> Lagos, Nigeria</p>
                 </div>
+
+                {/* Status box goes here */}
+                {notice && (
+                  <div className="mt-6">
+                    <Alert type={notice.type} onClose={() => setNotice(null)}>
+                      {notice.text}
+                    </Alert>
+                  </div>
+                )}
               </div>
 
               <form id="inquiry-form" onSubmit={handleSubmit} className="rounded-3xl border bg-white shadow-sm p-6 space-y-4">
@@ -346,16 +397,6 @@ form.reset();
                 >
                   {loading ? "Sending…" : "Send Inquiry"}
                 </button>
-
-                {status && (
-                  <p
-                    id="status"
-                    aria-live="polite"
-                    className={`text-sm ${ok === true ? "text-emerald-700" : ok === false ? "text-red-600" : "text-gray-500"}`}
-                  >
-                    {status}
-                  </p>
-                )}
               </form>
             </div>
           </section>
