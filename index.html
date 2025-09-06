@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Eakinstom International Ltd.</title>
+  <link rel="icon" type="image/jpeg" href="./eakinstom-logo.jpg">
+  <link rel="shortcut icon" type="image/jpeg" href="./eakinstom-logo.jpg">
+  <link rel="apple-touch-icon" href="./eakinstom-logo.jpg">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-white">
@@ -54,7 +57,7 @@
       const code = error.code;
 
       if (code === "23505" || msg.includes("duplicate key value")) {
-        return "This email has already submitted an inquiry. If you need to update details, please reach us via emai - bode.moyosade@eakinstom.com.";
+        return "This email has already submitted an inquiry. If you need to update details, please use a different email or contact us directly.";
       }
       if (msg.includes("row-level security") || code === "42501") {
         return "Your request was blocked by security rules. Please contact the site admin to enable inserts for this form.";
@@ -131,7 +134,16 @@
           <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b">
             <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
               <a href="#home" className="flex items-center gap-2">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white font-bold">EI</span>
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden bg-white border">
+                  <img
+                    src="./eakinstom-logo.jpg"   // <-- use your filename here
+                    alt="Eakinstom International Ltd. logo"
+                    className="h-full w-full object-contain p-0.5"
+                    loading="eager"
+                    decoding="async"
+                  />
+                </span>
+
                 <div>
                   <p className="font-semibold leading-tight">Eakinstom International Ltd.</p>
                   <p className="text-xs text-gray-500 -mt-1">Agric Export • Nigeria</p>
@@ -172,63 +184,13 @@
                   <div className="flex items-center gap-2"><span>⛴️</span> Lagos &amp; Onne Ports</div>
                 </div>
               </div>
-            {/* Replace the existing 2x2 tiles with this */}
-            <div className="relative">
-              <div className="aspect-[4/3] rounded-3xl border bg-white shadow-sm p-4 grid grid-cols-2 gap-4">
-                <figure className="relative overflow-hidden rounded-2xl">
-                  <img
-                    src="./images/cashew.jpg"
-                    alt="Raw cashew nuts"
-                    className="w-full h-full object-cover aspect-square"
-                    loading="lazy"
-                  />
-                  <figcaption className="absolute inset-x-0 bottom-0 bg-black/40 text-white text-sm font-medium p-2 text-center">
-                    Cashew Nuts
-                  </figcaption>
-                </figure>
-
-                <figure className="relative overflow-hidden rounded-2xl">
-                  <img
-                    src="./images/sesame.jpg"
-                    alt="Sesame seed"
-                    className="w-full h-full object-cover aspect-square"
-                    loading="lazy"
-                  />
-                  <figcaption className="absolute inset-x-0 bottom-0 bg-black/40 text-white text-sm font-medium p-2 text-center">
-                    Sesame Seed
-                  </figcaption>
-                </figure>
-
-                <figure className="relative overflow-hidden rounded-2xl">
-                  <img
-                    src="./images/ginger.jpg"
-                    alt="Dried split ginger"
-                    className="w-full h-full object-cover aspect-square"
-                    loading="lazy"
-                  />
-                  <figcaption className="absolute inset-x-0 bottom-0 bg-black/40 text-white text-sm font-medium p-2 text-center">
-                    Ginger (DR/Spl.)
-                  </figcaption>
-                </figure>
-
-                <figure className="relative overflow-hidden rounded-2xl">
-                  <img
-                    src="./images/charcoal.jpg"
-                    alt="BBQ charcoal"
-                    className="w-full h-full object-cover aspect-square"
-                    loading="lazy"
-                  />
-                  <figcaption className="absolute inset-x-0 bottom-0 bg-black/40 text-white text-sm font-medium p-2 text-center">
-                    Charcoal (BBQ)
-                  </figcaption>
-                </figure>
-              </div>
-
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                *Product photos.
-              </p>
-            </div>
-
+              <div className="relative">
+                <div className="aspect-[4/3] rounded-3xl border bg-white shadow-sm p-4 grid grid-cols-2 gap-4">
+                  <div className="rounded-2xl bg-amber-100 border flex items-center justify-center text-amber-900 font-semibold">Cashew Nuts</div>
+                  <div className="rounded-2xl bg-emerald-100 border flex items-center justify-center text-emerald-900 font-semibold">Sesame Seed</div>
+                  <div className="rounded-2xl bg-lime-100 border flex items-center justify-center text-lime-900 font-semibold">Ginger (DR/Spl.)</div>
+                  <div className="rounded-2xl bg-stone-100 border flex items-center justify-center text-stone-900 font-semibold">Charcoal (BBQ)</div>
+                </div>
                 <p className="text-xs text-gray-500 mt-2 text-center">*Illustrative product tiles – replace with photos later.</p>
               </div>
             </div>
