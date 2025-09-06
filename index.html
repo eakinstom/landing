@@ -10,11 +10,11 @@
   <link rel="shortcut icon" type="image/jpeg" href="images/eakinstom-logo.jpg">
   <link rel="apple-touch-icon" href="images/eakinstom-logo.jpg">
 
-  <!-- Optional: preload hero images for faster paint -->
+ 
   <link rel="preload" as="image" href="images/cashew.jpg">
   <link rel="preload" as="image" href="images/sesame.jpg">
   <link rel="preload" as="image" href="images/cocoa.jpg">
-  <link rel="preload" as="image" href="images/charcoal.jpg">
+  <link rel="preload" as="image" href="images/charcoal.jpeg">
 
   <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -31,7 +31,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script type="text/babel">
-    // 🔐 Supabase creds (ok to expose anon because RLS only allows INSERT on this table)
     const SUPABASE_URL = "https://rdtfqruyckzgwrzktkaa.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkdGZxcnV5Y2t6Z3dyemt0a2FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NTc1MTcsImV4cCI6MjA3MjAzMzUxN30.EM15Q8XvGrfvSkmHe2C3cibv20PYC4dNhJPpK5oJ2LY";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -207,9 +206,6 @@
                       decoding="async"
                       onError={(e)=>{ if (e.currentTarget.src !== FALLBACK) e.currentTarget.src = FALLBACK; }}
                     />
-                    <figcaption className="absolute bottom-2 left-2 rounded-md bg-black/55 text-white text-xs font-medium px-2 py-1">
-                      Cashew Nuts
-                    </figcaption>
                   </figure>
 
                   {/* Sesame */}
@@ -222,9 +218,6 @@
                       decoding="async"
                       onError={(e)=>{ if (e.currentTarget.src !== FALLBACK) e.currentTarget.src = FALLBACK; }}
                     />
-                    <figcaption className="absolute bottom-2 left-2 rounded-md bg-black/55 text-white text-xs font-medium px-2 py-1">
-                      Sesame Seed
-                    </figcaption>
                   </figure>
 
                   {/* Cocoa */}
@@ -237,24 +230,18 @@
                       decoding="async"
                       onError={(e)=>{ if (e.currentTarget.src !== FALLBACK) e.currentTarget.src = FALLBACK; }}
                     />
-                    <figcaption className="absolute bottom-2 left-2 rounded-md bg-black/55 text-white text-xs font-medium px-2 py-1">
-                      Cocoa Beans
-                    </figcaption>
                   </figure>
 
                   {/* Charcoal */}
                   <figure className="relative rounded-2xl overflow-hidden border h-full">
                     <img
-                      src="images/charcoal.jpg"
+                      src="images/charcoal.jpeg"
                       alt="BBQ charcoal"
                       className="w-full h-full object-cover"
                       loading="lazy"
                       decoding="async"
                       onError={(e)=>{ if (e.currentTarget.src !== FALLBACK) e.currentTarget.src = FALLBACK; }}
                     />
-                    <figcaption className="absolute bottom-2 left-2 rounded-md bg-black/55 text-white text-xs font-medium px-2 py-1">
-                      Charcoal (BBQ)
-                    </figcaption>
                   </figure>
                 </div>
 
