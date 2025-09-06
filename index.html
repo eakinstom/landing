@@ -4,9 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Eakinstom International Ltd.</title>
+
+  <!-- Favicon / icons -->
   <link rel="icon" type="image/jpeg" href="images/eakinstom-logo.jpg">
   <link rel="shortcut icon" type="image/jpeg" href="images/eakinstom-logo.jpg">
   <link rel="apple-touch-icon" href="images/eakinstom-logo.jpg">
+
+  <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-white">
@@ -16,6 +20,7 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -25,27 +30,19 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkdGZxcnV5Y2t6Z3dyemt0a2FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NTc1MTcsImV4cCI6MjA3MjAzMzUxN30.EM15Q8XvGrfvSkmHe2C3cibv20PYC4dNhJPpK5oJ2LY";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Small alert component
+    // Reusable alert
     function Alert({ type = "info", children, onClose }) {
       const styles = {
         success: "bg-emerald-50 border-emerald-200 text-emerald-800",
         error:   "bg-red-50 border-red-200 text-red-800",
         info:    "bg-gray-50 border-gray-200 text-gray-700",
       }[type] || "bg-gray-50 border-gray-200 text-gray-700";
-
-      const icon = {
-        success: "✔️",
-        error: "⚠️",
-        info: "ℹ️",
-      }[type] || "ℹ️";
-
+      const icon = { success: "✔️", error: "⚠️", info: "ℹ️" }[type] || "ℹ️";
       return (
         <div role="alert" className={`rounded-xl border px-4 py-3 flex items-start gap-3 ${styles}`}>
           <div className="text-lg leading-none">{icon}</div>
           <div className="text-sm">{children}</div>
-          {onClose && (
-            <button onClick={onClose} className="ml-auto text-sm opacity-70 hover:opacity-100">✕</button>
-          )}
+          {onClose && <button onClick={onClose} className="ml-auto text-sm opacity-70 hover:opacity-100">✕</button>}
         </div>
       );
     }
@@ -55,7 +52,6 @@
       if (!error) return "We couldn’t submit your inquiry right now.";
       const msg = (error.message || "").toLowerCase();
       const code = error.code;
-
       if (code === "23505" || msg.includes("duplicate key value")) {
         return "This email has already submitted an inquiry. If you need to update details, please use a different email or contact us directly.";
       }
@@ -65,13 +61,12 @@
       if (code === "401" || msg.includes("jwt")) {
         return "Authentication failed. Check the public (anon) key in the page configuration.";
       }
-      if (code === "42P01" || msg.includes("relation") && msg.includes("does not exist")) {
+      if (code === "42P01" || (msg.includes("relation") && msg.includes("does not exist"))) {
         return "Server table not found. Confirm the table name is public.inquiries.";
       }
       if (code === "22P02") {
         return "Invalid data format. Please check your inputs and try again.";
       }
-      // Default
       return "We couldn’t submit your inquiry right now. Please try again in a moment.";
     }
 
@@ -104,7 +99,6 @@
           setLoading(true);
           setNotice(null);
 
-          // Insert and fetch id (helps debugging)
           const { data, error } = await supabase
             .from("inquiries")
             .insert(payload)
@@ -134,6 +128,7 @@
           <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b">
             <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
               <a href="#home" className="flex items-center gap-2">
+                {/* Logo badge (36x36) */}
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden bg-white border">
                   <img
                     src="images/eakinstom-logo.jpg"
@@ -143,7 +138,6 @@
                     decoding="async"
                   />
                 </span>
-
                 <div>
                   <p className="font-semibold leading-tight">Eakinstom International Ltd.</p>
                   <p className="text-xs text-gray-500 -mt-1">Agric Export • Nigeria</p>
@@ -171,7 +165,7 @@
                 </h1>
                 <p className="mt-4 text-gray-600 max-w-prose">
                   Eakinstom International Limited is an agricultural exports company focused on sourcing, processing, and shipping
-                  high-quality commodities including raw cashew nuts, sesame seed, and other specialty crops. We deliver reliable
+                  high-quality commodities including raw cashew nuts, sesame seed, cocoa beans and other specialty crops. We deliver reliable
                   volumes, compliant documentation, and consistent quality for global buyers.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
@@ -184,16 +178,20 @@
                   <div className="flex items-center gap-2"><span>⛴️</span> Lagos &amp; Onne Ports</div>
                 </div>
               </div>
+
+              {/* Photo tiles */}
               <div className="relative">
-                <div className="aspect-[4/3] rounded-3xl border bg-white shadow-sm p-4 grid grid-cols-2 gap-4">
+                <div className="aspect-[4/3] rounded-3xl border bg-white shadow-sm p-4 grid grid-cols-2 grid-rows-2 auto-rows-fr gap-4">
                   {/* Cashew */}
-                  <figure className="relative rounded-2xl overflow-hidden border">
+                  <figure className="relative rounded-2xl overflow-hidden border h-full">
                     <img
                       src="https://source.unsplash.com/600x450/?cashew,nuts"
                       alt="Cashew nuts"
-                      className="h-full w-full object-cover"
+                      className="w-full h-full object-cover"
                       loading="lazy"
                       decoding="async"
+                      referrerPolicy="no-referrer"
+                      onError={(e)=>{ e.currentTarget.src = 'https://source.unsplash.com/600x450/?cashew'; }}
                     />
                     <figcaption className="absolute bottom-2 left-2 rounded-md bg-black/55 text-white text-xs font-medium px-2 py-1">
                       Cashew Nuts
@@ -201,27 +199,31 @@
                   </figure>
 
                   {/* Sesame */}
-                  <figure className="relative rounded-2xl overflow-hidden border">
+                  <figure className="relative rounded-2xl overflow-hidden border h-full">
                     <img
                       src="https://source.unsplash.com/600x450/?sesame,seeds"
                       alt="Sesame seeds"
-                      className="h-full w-full object-cover"
+                      className="w-full h-full object-cover"
                       loading="lazy"
                       decoding="async"
+                      referrerPolicy="no-referrer"
+                      onError={(e)=>{ e.currentTarget.src = 'https://source.unsplash.com/600x450/?sesame'; }}
                     />
                     <figcaption className="absolute bottom-2 left-2 rounded-md bg-black/55 text-white text-xs font-medium px-2 py-1">
                       Sesame Seed
                     </figcaption>
                   </figure>
 
-                  {/* Cocoa (replaces Ginger) */}
-                  <figure className="relative rounded-2xl overflow-hidden border">
+                  {/* Cocoa */}
+                  <figure className="relative rounded-2xl overflow-hidden border h-full">
                     <img
                       src="https://source.unsplash.com/600x450/?cocoa,beans"
                       alt="Cocoa beans"
-                      className="h-full w-full object-cover"
+                      className="w-full h-full object-cover"
                       loading="lazy"
                       decoding="async"
+                      referrerPolicy="no-referrer"
+                      onError={(e)=>{ e.currentTarget.src = 'https://source.unsplash.com/600x450/?cocoa'; }}
                     />
                     <figcaption className="absolute bottom-2 left-2 rounded-md bg-black/55 text-white text-xs font-medium px-2 py-1">
                       Cocoa Beans
@@ -229,19 +231,25 @@
                   </figure>
 
                   {/* Charcoal */}
-                  <figure className="relative rounded-2xl overflow-hidden border">
+                  <figure className="relative rounded-2xl overflow-hidden border h-full">
                     <img
                       src="https://source.unsplash.com/600x450/?charcoal,bbq"
                       alt="BBQ charcoal"
-                      className="h-full w-full object-cover"
+                      className="w-full h-full object-cover"
                       loading="lazy"
                       decoding="async"
+                      referrerPolicy="no-referrer"
+                      onError={(e)=>{ e.currentTarget.src = 'https://source.unsplash.com/600x450/?charcoal'; }}
                     />
                     <figcaption className="absolute bottom-2 left-2 rounded-md bg-black/55 text-white text-xs font-medium px-2 py-1">
                       Charcoal (BBQ)
                     </figcaption>
                   </figure>
                 </div>
+
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Images served via Unsplash Source.
+                </p>
               </div>
             </div>
           </section>
@@ -267,7 +275,7 @@
                 <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
                   <div className="rounded-2xl bg-gray-50 p-4 border">
                     <dt className="text-gray-500">Core Commodities</dt>
-                    <dd className="font-medium">Raw Cashew, Sesame</dd>
+                    <dd className="font-medium">Raw Cashew, Sesame, Cocoa</dd>
                   </div>
                   <div className="rounded-2xl bg-gray-50 p-4 border">
                     <dt className="text-gray-500">Packaging</dt>
@@ -295,6 +303,7 @@
               </div>
 
               <div className="mt-8 grid md:grid-cols-3 gap-6">
+                {/* Cashew */}
                 <article className="rounded-3xl bg-white border shadow-sm p-6">
                   <h3 className="font-semibold text-lg">Raw Cashew Nuts (RCN)</h3>
                   <p className="mt-2 text-sm text-gray-600">High out-turn Nigerian RCN, uniform grading, moisture-controlled.</p>
@@ -305,6 +314,7 @@
                   </ul>
                 </article>
 
+                {/* Sesame */}
                 <article className="rounded-3xl bg-white border shadow-sm p-6">
                   <h3 className="font-semibold text-lg">Sesame Seed</h3>
                   <p className="mt-2 text-sm text-gray-600">White &amp; mixed varieties; cleaned for export with lab reports.</p>
@@ -315,9 +325,10 @@
                   </ul>
                 </article>
 
+                {/* Other lines */}
                 <article className="rounded-3xl bg-white border shadow-sm p-6">
                   <h3 className="font-semibold text-lg">Other Lines (on request)</h3>
-                  <p className="mt-2 text-sm text-gray-600">Ginger (split/dry), shea nuts, hibiscus flower, and BBQ charcoal.</p>
+                  <p className="mt-2 text-sm text-gray-600">Cocoa beans, shea nuts, hibiscus flower, and BBQ charcoal.</p>
                   <ul className="mt-3 text-sm text-gray-700 space-y-1">
                     <li>• Competitive lead times</li>
                     <li>• SGS/Intertek inspection possible</li>
@@ -395,7 +406,7 @@
                   <p><span className="font-medium">Office:</span> Lagos, Nigeria</p>
                 </div>
 
-                {/* Status box goes here */}
+                {/* Status box */}
                 {notice && (
                   <div className="mt-6">
                     <Alert type={notice.type} onClose={() => setNotice(null)}>
@@ -432,7 +443,7 @@
                     <select id="product" name="product" className="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-600">
                       <option>Raw Cashew Nuts (RCN)</option>
                       <option>Sesame Seed</option>
-                      <option>Ginger (Split/Dry)</option>
+                      <option>Cocoa Beans</option>
                       <option>Other (specify below)</option>
                     </select>
                   </div>
